@@ -21,7 +21,7 @@
       <div v-if="loadPanorama" class="col-12 d-flex overflow-auto h-100">
         <div
           class="d-flex flex-column"
-          v-for="scene in scenesArray(src)"
+          v-for="scene in scenesArray()"
           :key="scene.value.name"
         >
           <img
@@ -94,8 +94,8 @@
                 <span class="p-inputgroup-addon"> Scene </span>
                 <Dropdown
                   optionLabel="label"
-                  :modelValue="selectedScene"
-                  :options="scenesArray(src)"
+                  :options="scenesArray()"
+                  v-model="selectedScene"
                 />
               </div>
             </div>
@@ -131,7 +131,8 @@ import Dropdown from "primevue/dropdown";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import PannellumSrc from "@/models/PannellumSrc";
-import type PannellumScene from "@/models/PannellumScene";
+import PannellumScene from "@/models/PannellumScene";
+import SelectedScene from "@/models/SelectedScene";
 import HotSpotType from "@/models/HotSpotType";
 
 const images = ref([
@@ -145,7 +146,7 @@ const yaw = ref(0);
 const pitch = ref(0);
 const infoTitle = ref("");
 const hotSpotType = ref<HotSpotType>();
-const selectedScene = ref("");
+const selectedScene = ref<{ label: String; value: PannellumScene }>();
 const sceneName = ref("");
 const loadPanorama = ref(false);
 const savedPanorama = ref();
@@ -153,10 +154,10 @@ const displayDialog = ref(false);
 const src = ref(new PannellumSrc());
 const pannellum = ref();
 
-const scenesArray = (src: PannellumSrc) => {
-  return Object.values(src.scenes).map((scene: PannellumScene) => {
+const scenesArray = () => {
+  return Object.values(src.value.scenes).map((scene: PannellumScene) => {
     return {
-      label: src.scenes[scene.name].name,
+      label: src.value.scenes[scene.name].name,
       value: scene,
     };
   });
@@ -182,22 +183,20 @@ function setHotspot() {
     yaw: yaw.value,
     type: hotSpotType.value?.value,
     text: infoTitle.value,
-    sceneId: selectedScene.value,
+    sceneId: selectedScene.value?.value.name,
   });
 
   pitch.value = 0;
   yaw.value = 0;
   hotSpotType.value = new HotSpotType();
   infoTitle.value = "";
-  selectedScene.value = "";
+  selectedScene.value = new SelectedScene();
 
   displayDialog.value = false;
 }
 
 function savePanorama() {
-  // get the whole src what we edited (includes the hotspots). this can be pass the api to save
   savedPanorama.value = pannellum.value.src;
-  console.log(savedPanorama.value);
 }
 
 function addScene() {
@@ -220,12 +219,13 @@ function addScene() {
 }
 
 function handleClickImage(scene: PannellumScene) {
-  src.value.default.firstScene = scene.name;
   pannellum.value.viewer.loadScene(scene.name);
 }
 
 function handleDeleteScene(scene: PannellumScene) {
-  delete src.value.scenes[scene.name];
+  const sceneName = scene.name;
+  delete src.value.scenes[sceneName];
+  console.log(src.value);
 }
 </script>
 <style>
