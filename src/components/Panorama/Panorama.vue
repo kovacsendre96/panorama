@@ -20,23 +20,36 @@
       </div>
       <div v-if="loadPanorama" class="col-12 d-flex overflow-auto h-100">
         <div
-          class="d-flex flex-column"
+          class="d-flex flex-column border shadow p-1 mx-1"
           v-for="scene in scenesArray()"
           :key="scene.value.name"
         >
           <img
             :src="scene.value.src"
-            class="img-thumbnail scene-image"
+            class="img-thumbnail scene-image border-0"
             :alt="scene.value.name"
             @click="handleClickImage(scene.value)"
           />
-          <div class="d-flex align-items-center">
-            <span class="mx-2">{{ scene.value.name }}</span>
-            <Button
-              @click="handleDeleteScene(scene.value)"
-              icon="pi pi-times"
-              class="p-button-rounded p-button-danger delete-icon mx-2"
-            />
+          <span class="mx-2">{{ scene.value.name }}</span>
+          <div class="d-flex align-items-center p-1">
+            <div class="field-checkbox d-flex align-items-center">
+              <div class="field-radiobutton d-flex align-items-center mx-1">
+                <RadioButton
+                  :inputId="scene.value.name"
+                  :name="scene.value.name"
+                  :value="scene.value.name"
+                  v-model="firstScene"
+                />
+              </div>
+              <label :for="scene.value.name">First scene</label>
+            </div>
+            <div class="d-flex align-items-center mx-1">
+              <Button
+                @click="handleDeleteScene(scene.value)"
+                icon="pi pi-times"
+                class="p-button-rounded p-button-danger delete-icon mx-2"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -131,9 +144,10 @@ import Dropdown from "primevue/dropdown";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import PannellumSrc from "@/models/PannellumSrc";
-import PannellumScene from "@/models/PannellumScene";
+import type PannellumScene from "@/models/PannellumScene";
 import SelectedScene from "@/models/SelectedScene";
 import HotSpotType from "@/models/HotSpotType";
+import RadioButton from "primevue/radiobutton";
 
 const images = ref([
   "../src/assets/19h1n3v-a-360-image-of-boat.jpeg",
@@ -151,8 +165,9 @@ const sceneName = ref("");
 const loadPanorama = ref(false);
 const savedPanorama = ref();
 const displayDialog = ref(false);
-const src = ref(new PannellumSrc());
+const src = ref<PannellumSrc>(new PannellumSrc());
 const pannellum = ref();
+const firstScene = ref();
 
 const scenesArray = () => {
   return Object.values(src.value.scenes).map((scene: PannellumScene) => {
@@ -196,11 +211,13 @@ function setHotspot() {
 }
 
 function savePanorama() {
+  pannellum.value.src.default.firstScene = firstScene.value;
   savedPanorama.value = pannellum.value.src;
+  console.log(savedPanorama.value);
 }
 
 function addScene() {
-  const newScene = {
+  const newScene: Record<string, PannellumScene> = {
     defaultSceneName: {
       name: sceneName.value,
       type: "equirectangular",
@@ -224,8 +241,8 @@ function handleClickImage(scene: PannellumScene) {
 
 function handleDeleteScene(scene: PannellumScene) {
   const sceneName = scene.name;
-  delete src.value.scenes[sceneName];
-  console.log(src.value);
+  const scenes = src.value.scenes;
+  delete scenes[sceneName];
 }
 </script>
 <style>

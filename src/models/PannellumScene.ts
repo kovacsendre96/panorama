@@ -5,5 +5,5 @@ export default class PannellumScene {
   public type = "";
   public src = "";
   public panorama = "";
-  public hotspots: HotSpot[] = [];
+  public hotSpots?: HotSpot[] = [];
 }
